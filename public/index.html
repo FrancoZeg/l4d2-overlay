@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>L4D2 Competitive Overlay</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { width: 1920px; height: 1080px; background: transparent; overflow: hidden; position: relative; }
+    
+    .top-bar {
+      position: absolute; top: 20px; left: 300px; width: 1320px; height: 65px;
+      background: rgba(10, 12, 16, 0.92); border: 2px solid rgba(60, 65, 75, 1);
+      border-radius: 10px; display: flex; align-items: center; justify-content: space-between;
+      color: #ffffff; padding: 0 15px;
+    }
+    .team-left { display: flex; align-items: center; gap: 20px; }
+    .team-left .accent { width: 8px; height: 45px; background-color: #ff7800; border-radius: 4px; }
+    .team-left .name { font-size: 20px; font-weight: bold; color: #ff7800; }
+    .team-left .score { font-size: 28px; font-weight: bold; }
+
+    .team-right { display: flex; align-items: center; gap: 20px; flex-direction: row-reverse; }
+    .team-right .accent { width: 8px; height: 45px; background-color: #00b4ff; border-radius: 4px; }
+    .team-right .name { font-size: 20px; font-weight: bold; color: #00b4ff; }
+    .team-right .score { font-size: 28px; font-weight: bold; }
+
+    .center-info {
+      width: 380px; height: 50px; background: rgba(25, 30, 40, 0.95);
+      border: 1px solid rgba(60, 65, 75, 1); border-radius: 6px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 10px;
+    }
+    .map-round { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .progress-bg { width: 100%; height: 12px; background: rgba(40, 45, 55, 1); border-radius: 4px; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; background: #ff7800; width: 0%; transition: width 0.5s ease-in-out; }
+    .progress-text { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 10px; line-height: 12px; color: #ffffff; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="team-left">
+      <div class="accent"></div>
+      <div class="name" id="eq1-nombre">CARGANDO...</div>
+      <div class="score" id="eq1-puntos">0</div>
+    </div>
+
+    <div class="center-info">
+      <div class="map-round" id="mapa-ronda">CARGANDO MAPA...</div>
+      <div class="progress-bg">
+        <div class="progress-fill" id="barra-progreso"></div>
+        <div class="progress-text" id="texto-progreso">0%</div>
+      </div>
+    </div>
+
+    <div class="team-right">
+      <div class="accent"></div>
+      <div class="name" id="eq2-nombre">CARGANDO...</div>
+      <div class="score" id="eq2-puntos">0</div>
+    </div>
+  </div>
+
+  <script>
+    async function actualizarOverlay() {
+      try {
+        const response = await fetch('/api/sheet');
+        const json = await response.json();
+        
+        if (!json.success) throw new Error(json.error);
+        const datos = json.data;
+
+        if (datos['equipo1_nombre']) document.getElementById('eq1-nombre').innerText = datos['equipo1_nombre'];
+        if (datos['equipo1_puntos']) document.getElementById('eq1-puntos').innerText = datos['equipo1_puntos'];
+        if (datos['equipo2_nombre']) document.getElementById('eq2-nombre').innerText = datos['equipo2_nombre'];
+        if (datos['equipo2_puntos']) document.getElementById('eq2-puntos').innerText = datos['equipo2_puntos'];
+        if (datos['mapa_ronda']) document.getElementById('mapa-ronda').innerText = datos['mapa_ronda'];
+
+        if (datos['progreso_porcentaje']) {
+          const pct = datos['progreso_porcentaje'].replace('%', '').trim() + '%';
+          document.getElementById('barra-progreso').style.width = pct;
+          document.getElementById('texto-progreso').innerText = pct;
+        }
+      } catch (error) {
+        console.error('Error al obtener datos del servidor:', error);
+      }
+    }
+
+    setInterval(actualizarOverlay, 3000);
+    actualizarOverlay();
+  </script>
+</body>
+</html>
